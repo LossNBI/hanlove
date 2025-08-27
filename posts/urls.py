@@ -1,7 +1,12 @@
+# posts/urls.py
+
 from django.urls import path
 from . import views
 
 urlpatterns = [
-    # 게시물에 대한 댓글 목록 조회 및 생성 API
+    # 게시물 목록 조회 및 생성 API (새로 추가)
+    path('', views.PostListCreateView.as_view(), name='post-list-create'),
+
+    # 게시물에 대한 댓글 목록 조회 및 생성 API (기존 코드)
     path('<int:post_id>/comments/', views.CommentListCreateView.as_view(), name='comment-list-create'),
 ]
