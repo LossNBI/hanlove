@@ -1,18 +1,32 @@
 # posts/views.py
 
-from rest_framework import viewsets, permissions
-from .models import Post
-from .serializers import PostSerializer
+from rest_framework import viewsets, permissions, generics
+from rest_framework.response import Response
+from rest_framework.decorators import action
+from .models import Post, Comment
+from .serializers import PostSerializer, CommentSerializer
 
+# PostViewSet은 기존 그대로 둡니다.
 class PostViewSet(viewsets.ModelViewSet):
-    # 모든 게시물을 불러옵니다. 최신 게시물을 가장 먼저 보여주기 위해 -created_at을 사용합니다.
     queryset = Post.objects.all().order_by('-created_at')
-    # 게시물 데이터를 JSON으로 변환할 Serializer를 지정합니다.
     serializer_class = PostSerializer
-    # 로그인된 사용자만 게시물을 작성할 수 있도록 권한을 설정합니다.
     permission_classes = [permissions.IsAuthenticatedOrReadOnly] 
 
     def perform_create(self, serializer):
-        # 새로운 게시물이 생성될 때, 작성자(author)를 현재 로그인된 사용자로 자동 설정합니다.
-        # 이렇게 하면 사용자가 직접 author 정보를 입력할 필요가 없습니다.
         serializer.save(author=self.request.user)
+
+class CommentListCreateView(generics.ListCreateAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        # URL에서 'post_id'를 가져와서 해당 게시물의 댓글만 필터링합니다.
+        post_id = self.kwargs['post_id']
+        return Comment.objects.filter(post_id=post_id).order_by('created_at')
+
+    def perform_create(self, serializer):
+        # URL에서 'post_id'를 가져와서 해당 게시물에 댓글을 연결하고,
+        # 작성자를 현재 로그인된 사용자로 설정합니다.
+        post_id = self.kwargs['post_id']
+        post = Post.objects.get(pk=post_id)
+        serializer.save(post=post, author=self.request.user)
