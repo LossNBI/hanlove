@@ -141,3 +141,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # 모든 도메인에서 CORS 요청을 허용 (개발용)
 CORS_ALLOW_ALL_ORIGINS = True
+
+# 정적 파일 관련 설정
+STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static' # 이 줄을 추가하여 정적 파일 경로를 명시합니다.
+
+# 미디어 파일 (사용자 업로드 파일) 관련 설정
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
