@@ -1,3 +1,5 @@
+#bible\django_bible\mybibleapp\settings.py
+
 """
 Django settings for mybibleapp project.
 
@@ -42,6 +44,7 @@ INSTALLED_APPS = [
     'users',
     'corsheaders',
     'rest_framework.authtoken',
+    'posts',
 ]
 
 REST_FRAMEWORK = {

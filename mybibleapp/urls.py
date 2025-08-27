@@ -1,24 +1,27 @@
+# mybibleapp/urls.py
+
 """
 URL configuration for mybibleapp project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
 from django.urls import path, include
+
+# DRF 라우터를 사용하기 위해 추가
+from rest_framework.routers import DefaultRouter
+from posts.views import PostViewSet
+
+# DRF 라우터를 사용해 posts 앱의 URL을 자동으로 생성합니다.
+router = DefaultRouter()
+router.register(r'posts', PostViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/users/', include('users.urls')),
     path('api/notices/', include('notice.urls')),
+    
+    # 이 부분을 추가합니다. 기존 API 경로와 충돌하지 않도록 'api/' 아래에 라우터를 포함합니다.
+    path('api/', include(router.urls)),
 ]
