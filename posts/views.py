@@ -5,12 +5,14 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from .models import Post, Comment
 from .serializers import PostSerializer, CommentSerializer
+from .permissions import IsAuthorOrAdmin
 
 # PostViewSet은 기존 그대로 둡니다.
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')
     serializer_class = PostSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly] 
+    permission_classes = [IsAuthorOrAdmin] 
+    
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
