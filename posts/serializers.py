@@ -2,7 +2,6 @@
 
 from rest_framework import serializers
 from .models import Post, Comment
-from users.serializers import CustomUserSerializer # CustomUserSerializer import
 
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.ReadOnlyField(source='author.nickname')
@@ -10,6 +9,12 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ['id', 'author', 'text', 'created_at']
+
+    # 댓글 작성자의 ID를 추가로 반환
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['author_id'] = instance.author.id
+        return representation
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -20,7 +25,6 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = ['id', 'author', 'caption', 'image', 'video', 'created_at', 'comments']
         
-    # author_id 필드 추가
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         representation['author_id'] = instance.author.id
