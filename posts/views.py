@@ -1,41 +1,42 @@
 # posts/views.py
 
-from rest_framework import viewsets, permissions, generics
-from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework import generics, permissions
 from .models import Post, Comment
 from .serializers import PostSerializer, CommentSerializer
-from .permissions import IsAuthorOrAdmin
+from .permissions import IsAuthorOrAdmin, IsCommentAuthorOrAdmin
 
-# PostViewSet은 기존 그대로 둡니다.
-class PostViewSet(viewsets.ModelViewSet):
+# 게시물 목록 조회 및 생성
+class PostListCreateView(generics.ListCreateAPIView):
     queryset = Post.objects.all().order_by('-created_at')
     serializer_class = PostSerializer
-    permission_classes = [IsAuthorOrAdmin] 
-    
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-class PostListCreateView(generics.ListCreateAPIView):
+# 특정 게시물 조회, 수정, 삭제
+class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    permission_classes = [IsAuthorOrAdmin]
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-
+# 특정 게시물에 대한 댓글 목록 조회 및 생성
 class CommentListCreateView(generics.ListCreateAPIView):
+    queryset = Comment.objects.all().order_by('created_at')
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        # URL에서 'post_id'를 가져와서 해당 게시물의 댓글만 필터링합니다.
         post_id = self.kwargs['post_id']
-        return Comment.objects.filter(post_id=post_id).order_by('created_at')
-
+        return self.queryset.filter(post_id=post_id)
+        
     def perform_create(self, serializer):
-        # URL에서 'post_id'를 가져와서 해당 게시물에 댓글을 연결하고,
-        # 작성자를 현재 로그인된 사용자로 설정합니다.
         post_id = self.kwargs['post_id']
         post = Post.objects.get(pk=post_id)
         serializer.save(post=post, author=self.request.user)
+
+# 특정 댓글 조회, 수정, 삭제
+class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsCommentAuthorOrAdmin]
