@@ -150,21 +150,27 @@ STATIC_ROOT = BASE_DIR / 'static' # 이 줄을 추가하여 정적 파일 경로
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# 로거 인스턴스 생성
+import logging
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
+        'file': {
+            'level': 'DEBUG', # DEBUG 레벨 로그를 파일에 기록
+            'class': 'logging.FileHandler',
+            'filename': '/home/jisung/path/to/your/app.log', # 실제 경로로 수정
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
         },
-        '': {  # 이 부분이 중요합니다. 모든 앱의 로그를 처리합니다.
-            'handlers': ['console'],
+        'users': { # 'users' 앱의 로그를 따로 관리
+            'handlers': ['file'],
             'level': 'DEBUG',
             'propagate': True,
         },
