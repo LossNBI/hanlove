@@ -1,5 +1,6 @@
 # bible/django_bible/users/views.py
 
+import logging
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -73,22 +74,24 @@ class UserManagementView(APIView):
 
                 # 슈퍼유저는 다른 관리자를 수정할 수 없습니다.
                 if user.is_superuser and not request.user.is_superuser:
+                    logger.warning("슈퍼유저가 아닌 사용자가 슈퍼유저를 관리하려 함")
                     return Response({'error': 'You cannot manage a superuser.'}, status=status.HTTP_403_FORBIDDEN)
                 
                 # 자기 자신은 관리자 권한을 해제할 수 없도록 방지
                 if user == request.user and 'is_staff' in request.data and not request.data['is_staff']:
+                    logger.warning(f"사용자({request.user.username})가 자신의 관리자 권한을 해제하려 함.")
                     return Response({'error': 'You cannot dismiss yourself from admin role.'}, status=status.HTTP_403_FORBIDDEN)
                 
                 # is_staff와 is_active 필드 업데이트를 허용
                 serializer = UserUpdateSerializer(user, data=request.data, partial=True)
-
+                
                 # --- 디버그 로그 시작 ---
                 if not serializer.is_valid():
                     logger.debug(f"유효성 검사 실패! 오류: {serializer.errors}")
                 else:
                     logger.debug("유효성 검사 통과. 데이터를 저장합니다.")
                 # --- 디버그 로그 끝 ---
-
+                
                 if serializer.is_valid():
                     serializer.save()
                     return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
