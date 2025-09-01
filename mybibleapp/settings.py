@@ -149,3 +149,24 @@ STATIC_ROOT = BASE_DIR / 'static' # 이 줄을 추가하여 정적 파일 경로
 # 미디어 파일 (사용자 업로드 파일) 관련 설정
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        '': {  # 이 부분이 중요합니다. 모든 앱의 로그를 처리합니다.
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}

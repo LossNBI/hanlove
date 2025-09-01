@@ -11,6 +11,9 @@ from .serializers import RegisterSerializer, UserSerializer, UserUpdateSerialize
 from rest_framework import permissions
 from django.db import transaction
 
+# 로거 인스턴스 생성
+logger = logging.getLogger(__name__)
+
 # 회원가입
 class RegisterView(APIView):
     def post(self, request):
@@ -59,6 +62,11 @@ class UserManagementView(APIView):
 
     def put(self, request, pk):
         try:
+            # --- 디버그 로그 시작 ---
+            logger.debug(f"PUT 요청이 도착했습니다. PK: {pk}")
+            logger.debug(f"요청 데이터: {request.data}")
+            # --- 디버그 로그 끝 ---
+
             # 트랜잭션으로 데이터 무결성 보장
             with transaction.atomic():
                 user = CustomUser.objects.get(pk=pk)
@@ -73,14 +81,24 @@ class UserManagementView(APIView):
                 
                 # is_staff와 is_active 필드 업데이트를 허용
                 serializer = UserUpdateSerializer(user, data=request.data, partial=True)
+
+                # --- 디버그 로그 시작 ---
+                if not serializer.is_valid():
+                    logger.debug(f"유효성 검사 실패! 오류: {serializer.errors}")
+                else:
+                    logger.debug("유효성 검사 통과. 데이터를 저장합니다.")
+                # --- 디버그 로그 끝 ---
+
                 if serializer.is_valid():
                     serializer.save()
                     return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         except CustomUser.DoesNotExist:
+            logger.error(f"사용자를 찾을 수 없습니다. PK: {pk}")
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
+            logger.error(f"예상치 못한 오류 발생: {e}", exc_info=True)
             return Response({'error': f'An unexpected error occurred: {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def delete(self, request, pk):
