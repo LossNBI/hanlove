@@ -149,27 +149,3 @@ STATIC_ROOT = BASE_DIR / 'static' # 이 줄을 추가하여 정적 파일 경로
 # 미디어 파일 (사용자 업로드 파일) 관련 설정
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/home/Jisung/hanlove/logs/debug.log', # <--- 이 부분을 수정하세요.
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'users': {
-            'handlers': ['file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-    },
-}
