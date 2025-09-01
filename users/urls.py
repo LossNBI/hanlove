@@ -12,4 +12,5 @@ urlpatterns = [
     path('<int:pk>/update/', UserManagementView.as_view(), name='user-update'),
     path('<int:pk>/delete/', UserManagementView.as_view(), name='user-delete'),
     path('<int:pk>/make_admin/', MakeAdminView.as_view(), name='make-admin'),
+    path('manage/<int:pk>/', UserManagementView.as_view(), name='user-management'),
 ]

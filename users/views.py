@@ -124,18 +124,4 @@ class DeleteSelfView(APIView):
         user = request.user
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-# 관리자 임명
-class MakeAdminView(APIView):
-    permission_classes = [IsAdminUser]
-
-    def put(self, request, pk):
-        try:
-            user = CustomUser.objects.get(pk=pk)
-        except CustomUser.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        user.is_staff = True
-        user.save()
-        serializer = UserSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    
