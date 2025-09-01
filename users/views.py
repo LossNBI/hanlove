@@ -1,3 +1,5 @@
+# bible/django_bible/users/views.py
+
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -7,6 +9,7 @@ from django.contrib.auth import authenticate
 from .models import CustomUser
 from .serializers import RegisterSerializer, UserSerializer, UserUpdateSerializer
 from rest_framework import permissions
+from django.db import transaction
 
 # 회원가입
 class RegisterView(APIView):
@@ -50,21 +53,35 @@ class UserListView(APIView):
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-# 관리자용 사용자 관리 (비밀번호 변경 등)
+# 관리자용 사용자 관리 (비밀번호, is_staff, is_active 변경 등)
 class UserManagementView(APIView):
     permission_classes = [IsAdminUser]
 
     def put(self, request, pk):
         try:
-            user = CustomUser.objects.get(pk=pk)
+            # 트랜잭션으로 데이터 무결성 보장
+            with transaction.atomic():
+                user = CustomUser.objects.get(pk=pk)
+
+                # 슈퍼유저는 다른 관리자를 수정할 수 없습니다.
+                if user.is_superuser and not request.user.is_superuser:
+                    return Response({'error': 'You cannot manage a superuser.'}, status=status.HTTP_403_FORBIDDEN)
+                
+                # 자기 자신은 관리자 권한을 해제할 수 없도록 방지
+                if user == request.user and 'is_staff' in request.data and not request.data['is_staff']:
+                    return Response({'error': 'You cannot dismiss yourself from admin role.'}, status=status.HTTP_403_FORBIDDEN)
+                
+                # is_staff와 is_active 필드 업데이트를 허용
+                serializer = UserUpdateSerializer(user, data=request.data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         except CustomUser.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = UserUpdateSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': f'An unexpected error occurred: {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def delete(self, request, pk):
         try:

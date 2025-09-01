@@ -1,3 +1,5 @@
+# bible/django_bible/users/urls.py
+
 from django.urls import path
 from .views import RegisterView, LoginView, UserInfoView, UserListView, UserManagementView, DeleteSelfView, MakeAdminView
 
